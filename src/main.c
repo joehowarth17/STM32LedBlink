@@ -26,11 +26,11 @@
  */
 
 // ----------------------------------------------------------------------------
-
 #include <stdio.h>
 #include <stdlib.h>
 #include "diag/Trace.h"
-#include "stm32f4xx.h"
+#include "stm32f411xe.h"
+
 // ----------------------------------------------------------------------------
 //
 // Standalone STM32F4 empty sample (trace via ITM).
@@ -51,17 +51,33 @@
 #pragma GCC diagnostic ignored "-Wmissing-declarations"
 #pragma GCC diagnostic ignored "-Wreturn-type"
 
-int
-main(int argc, char* argv[])
-{
-  // At this stage the system clock should have already been configured
-  // at high speed.
+int main(int argc, char* argv[]) {
+	// At this stage the system clock should have already been configured
+	// at high speed.
 
-  // Infinite loop
-  while (1)
-    {
-       // Add your code here.
-    }
+	// Enable clock for GPIOD
+	RCC ->AHB1ENR |= RCC_AHB1ENR_GPIODEN;
+
+	//Set pin 15 as output
+	GPIOD ->MODER |= GPIO_MODER_MODER15_0;
+	GPIOD ->MODER &= ~(GPIO_MODER_MODER15_1);
+
+	//set GPIO speed to low
+	GPIOD ->OSPEEDR &= ~GPIO_OSPEEDER_OSPEEDR15;
+
+	//set output type to push-pull
+	GPIOD ->OTYPER &= ~(GPIO_OTYPER_OT_15);
+
+	//set no pull-up/pull-down
+	GPIOD -> PUPDR &= ~(GPIO_PUPDR_PUPDR15);
+
+	//turn led on
+	GPIOD ->BSRR |= (GPIO_BSRR_BS_15);
+
+	// Infinite loop
+	while (1) {
+		// Add your code here.
+	}
 }
 
 #pragma GCC diagnostic pop
