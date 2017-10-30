@@ -30,6 +30,7 @@
 #include <stdlib.h>
 #include "diag/Trace.h"
 #include "stm32f411xe.h"
+#include "stm32f4xx_hal.h"
 
 // ----------------------------------------------------------------------------
 //
@@ -52,8 +53,6 @@
 #pragma GCC diagnostic ignored "-Wreturn-type"
 
 int main(int argc, char* argv[]) {
-	// At this stage the system clock should have already been configured
-	// at high speed.
 
 	// Enable clock for GPIOD
 	RCC ->AHB1ENR |= RCC_AHB1ENR_GPIODEN;
@@ -62,21 +61,40 @@ int main(int argc, char* argv[]) {
 	GPIOD ->MODER |= GPIO_MODER_MODER15_0;
 	GPIOD ->MODER &= ~(GPIO_MODER_MODER15_1);
 
-	//set GPIO speed to low
+	//Set GPIO speed to low.
 	GPIOD ->OSPEEDR &= ~GPIO_OSPEEDER_OSPEEDR15;
 
-	//set output type to push-pull
+	//Set output type to push-pull.
 	GPIOD ->OTYPER &= ~(GPIO_OTYPER_OT_15);
 
-	//set no pull-up/pull-down
+	//Set no pull-up/pull-down.
 	GPIOD -> PUPDR &= ~(GPIO_PUPDR_PUPDR15);
 
-	//turn led on
-	GPIOD ->BSRR |= (GPIO_BSRR_BS_15);
 
-	// Infinite loop
+
+	//Enable timer 2.
+	RCC ->APB1ENR |= RCC_APB1ENR_TIM2EN;
+
+	//Set the pre-scaler to 1220 to get around 1Hz
+	TIM2 ->PSC  = 1220;
+
+	//Set auto-reload value to 65535, to get proper frequency
+	TIM2 ->ARR = 65535;
+
+	//Enable the timer.
+	TIM2 ->CR1 |= TIM_CR1_CEN;
+
 	while (1) {
-		// Add your code here.
+
+		//If the timer update interrupt flag is set, toggle the LED.
+		if(TIM2 ->SR & TIM_SR_UIF){
+
+			TIM2  ->SR &= ~TIM_SR_UIF;
+			GPIOD ->ODR ^= (GPIO_ODR_ODR_15);
+
+		}
+
+
 	}
 }
 
